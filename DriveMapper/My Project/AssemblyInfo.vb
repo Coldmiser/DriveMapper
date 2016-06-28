@@ -10,9 +10,9 @@ Imports System.Runtime.InteropServices
 
 <Assembly: AssemblyTitle("DriveMapper")>
 <Assembly: AssemblyDescription("")>
-<Assembly: AssemblyCompany("Microsoft")>
+<Assembly: AssemblyCompany("Ascent")>
 <Assembly: AssemblyProduct("DriveMapper")>
-<Assembly: AssemblyCopyright("Copyright © Microsoft 2016")>
+<Assembly: AssemblyCopyright("Copyright © Ascent 2016")>
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>
@@ -31,5 +31,5 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.0.0.0")>
-<Assembly: AssemblyFileVersion("1.0.0.0")>
+<Assembly: AssemblyVersion("1.0.0.1")>
+<Assembly: AssemblyFileVersion("1.0.0.1")>
