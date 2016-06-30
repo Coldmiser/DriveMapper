@@ -52,22 +52,22 @@ Module Module1
 
                 Console.WriteLine()
                 'Console.WriteLine("Password is: " & password)
-                MapDrive("E", "\\COMPUTER\e$", "COMPUTER\USER", "Password2")
-                Console.Write("E")
-                MapDrive("H", "\\cifs.company.com\users$\USER2", "company\USER2", password)
-                Console.Write("H")
-                MapDrive("N", "\\company.com\data\Enterprise\Temp", "company\USER2", password)
-                Console.Write("N")
-                MapDrive("P", "\\company.com\app\IT", "company\USER2", password)
-                Console.Write("P")
-                MapDrive("S", "\\company.com\app\IT", "company\USER2", password)
-                Console.Write("S")
-                MapDrive("T", "\\company.com\data\IT", "company\USER2", password)
-                Console.Write("T")
-                MapDrive("U", "\\ppgulc1000\Scripting", "company\USER2", password)
-                Console.Write("U")
-                MapDrive("V", "\\company.com\app", "company\USER2", password)
-                Console.Write("V")
+                'MapDrive("E", "\\COMPUTER\e$", "COMPUTER\USER", "Password2")
+                'Console.Write("E")
+                'MapDrive("H", "\\cifs.company.com\users$\USER2", "company\USER2", password)
+                'Console.Write("H")
+                'MapDrive("N", "\\company.com\data\Enterprise\Temp", "company\USER2", password)
+                'Console.Write("N")
+                'MapDrive("P", "\\company.com\app\IT", "company\USER2", password)
+                'Console.Write("P")
+                'MapDrive("S", "\\company.com\app\IT", "company\USER2", password)
+                'Console.Write("S")
+                'MapDrive("T", "\\company.com\data\IT", "company\USER2", password)
+                'Console.Write("T")
+                'MapDrive("U", "\\ppgulc1000\Scripting", "company\USER2", password)
+                'Console.Write("U")
+                'MapDrive("V", "\\company.com\app", "company\USER2", password)
+                'Console.Write("V")
                 'Console.ReadKey()
             End If
 
@@ -78,10 +78,14 @@ Module Module1
     Public Declare Function WNetCancelConnection2 Lib "mpr" Alias "WNetCancelConnection2A" (ByVal lpName As String, ByVal dwFlags As Integer, ByVal fForce As Integer) As Integer
     Public Const ForceDisconnect As Integer = 1
     Public Const RESOURCETYPE_DISK As Long = &H1
+    'System Codes :  https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
+    'Network Codes:  https://msdn.microsoft.com/en-us/library/windows/desktop/aa385413(v=vs.85).aspx
     Private Const ERROR_BAD_NETPATH = 53&
-    Private Const ERROR_NETWORK_ACCESS_DENIED = 65&
-    Private Const ERROR_INVALID_PASSWORD = 86&
     Private Const ERROR_NETWORK_BUSY = 54&
+    Private Const ERROR_NETWORK_ACCESS_DENIED = 65&
+    Private Const ERROR_BAD_NET_NAME = 67&
+    Private Const ERROR_ALREADY_ASSIGNED = 85&
+    Private Const ERROR_INVALID_PASSWORD = 86&
     Public NotInheritable Class Simple3Des
         Private TripleDes As New TripleDESCryptoServiceProvider
 
@@ -179,22 +183,41 @@ Module Module1
         result = WNetAddConnection2(nr, strPassword, strUsername, 0)
 
         If result = 0 Then
+            Console.ForegroundColor = ConsoleColor.White
+            Console.BackgroundColor = ConsoleColor.DarkGreen
+            Console.Write(DriveLetter)
+            Console.ResetColor()
             Return True
         Else
+            Console.ForegroundColor = ConsoleColor.Black
+            Console.BackgroundColor = ConsoleColor.Red
             Select Case result
                 Case ERROR_BAD_NETPATH
+                    '53 (0x35) The network path was Not found.
                     'Console.WriteLine("QA4001I", "Bad path could not connect to Directory")
-                    Console.WriteLine("Bad path could not connect to Directory")
-                Case ERROR_INVALID_PASSWORD
-                    'Console.WriteLine("QA4002I", "Invalid password could not connect to Directory")
-                    Console.WriteLine("Invalid password could not connect to Directory")
-                Case ERROR_NETWORK_ACCESS_DENIED
-                    'Console.WriteLine("QA4003I", "Network access denied could not connect to Directory")
-                    Console.WriteLine("Network access denied could not connect to Directory")
+                    Console.WriteLine(DriveLetter + ":  Bad path could not connect to Directory")
                 Case ERROR_NETWORK_BUSY
+                    '54 (0x36) The network Is busy.
                     'Console.WriteLine("QA4004I", "Network busy could not connect to Directory")
-                    Console.WriteLine("Network busy could not connect to Directory")
+                    Console.WriteLine(DriveLetter + ":  Network busy could not connect to Directory")
+                Case ERROR_NETWORK_ACCESS_DENIED
+                    '65 (0x41) Network access Is denied.
+                    'Console.WriteLine("QA4003I", "Network access denied could not connect to Directory")
+                    Console.WriteLine(DriveLetter + ":  Network access denied could not connect to Directory")
+                Case ERROR_BAD_NET_NAME
+                    '67 (0x43) The network name cannot be found.
+                    Console.WriteLine(DriveLetter + ":  The network name cannot be found")
+                Case ERROR_ALREADY_ASSIGNED
+                    '85 (0x55) The local device name Is already in use.
+                    Console.WriteLine(DriveLetter + ":  The local device name Is already in use.")
+                Case ERROR_INVALID_PASSWORD
+                    '86 (0x56) The specified network password Is Not correct.
+                    'Console.WriteLine("QA4002I", "Invalid password could not connect to Directory")
+                    Console.WriteLine(DriveLetter + ":  Invalid password could not connect to Directory")
+                Case Else
+                    Console.WriteLine(DriveLetter + ":  " + result)
             End Select
+            Console.ResetColor()
             Return False
         End If
     End Function
@@ -232,11 +255,23 @@ Module Module1
                     cleartext(2) = wrapper.DecryptData(LineArray(2))
                     cleartext(3) = wrapper.DecryptData(LineArray(3))
 
-                    Console.WriteLine("Decrypted:  " + cleartext(0) + vbTab + cleartext(1) + vbTab + cleartext(2) + vbTab + "[password]")
+                    Dim format As String = "{0,-2} {1,-40} {2,-20} {3,-10}"
+
+                    ' Construct lines.
+                    Dim line1 As String = String.Format(format, cleartext(0), cleartext(1), cleartext(2), "[password]")
+
+                    ' Print them.
+                    'Console.WriteLine(line1)
+                    'Map That Drive!
+                    MapDrive(cleartext(0), cleartext(1), cleartext(2), cleartext(3))
+
+
+                    'Console.WriteLine("Decrypted:  " + cleartext(0) + vbTab + cleartext(1) + vbTab + cleartext(2) + vbTab + "[password]")
                     'Console.WriteLine(String.Join(vbTab, cleartext))
 
                     line = sr.ReadLine
                 Loop
+                Console.WriteLine("")
 
             End Using
         Catch e As Exception
